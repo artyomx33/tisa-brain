@@ -20,6 +20,7 @@ import {
   upgradeDocument,
   generateEmail
 } from '../lib/claude';
+import { useHistoryStore } from '../stores/historyStore';
 
 type GeneratorType = 'instagram' | 'tour' | 'objection' | 'document' | 'email';
 
@@ -37,6 +38,7 @@ export default function ContentGenerator() {
   const [output, setOutput] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string>('');
+  const { addItem } = useHistoryStore();
 
   // Form states
   const [topic, setTopic] = useState('');
@@ -58,11 +60,13 @@ export default function ContentGenerator() {
 
     try {
       let result = '';
+      let inputText = '';
 
       switch (selectedType) {
         case 'instagram':
           const selectedPillar = pillars.find(p => p.id === pillar);
           const selectedProfile = parentProfiles.find(p => p.id === profile);
+          inputText = topic;
           result = await generateInstagramPost(
             topic,
             selectedPillar?.name || pillar,
@@ -73,6 +77,7 @@ export default function ContentGenerator() {
 
         case 'tour':
           const tourProfile = parentProfiles.find(p => p.id === profile);
+          inputText = `Profile: ${tourProfile?.name}, Concerns: ${concerns}`;
           result = await generateTourScript(
             tourProfile?.name || profile,
             concerns
@@ -80,19 +85,33 @@ export default function ContentGenerator() {
           break;
 
         case 'objection':
+          inputText = objection;
           result = await handleObjection(objection, context);
           break;
 
         case 'document':
+          inputText = `${docType}: ${originalText.substring(0, 100)}...`;
           result = await upgradeDocument(originalText, docType);
           break;
 
         case 'email':
+          inputText = `To: ${recipient}, Purpose: ${purpose}`;
           result = await generateEmail(context, recipient, purpose);
           break;
       }
 
       setOutput(result);
+
+      // Save to history
+      addItem({
+        type: selectedType,
+        content: result,
+        input: inputText,
+        pillar: selectedType === 'instagram' ? pillar : undefined,
+        profile: selectedType === 'instagram' || selectedType === 'tour' ? profile : undefined,
+        psychology: selectedType === 'instagram' ? psychology : undefined,
+      });
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

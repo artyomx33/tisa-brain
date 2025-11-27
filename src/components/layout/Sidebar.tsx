@@ -10,7 +10,8 @@ import {
   Megaphone,
   FileText,
   Settings,
-  Home
+  Home,
+  History
 } from 'lucide-react';
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { to: '/profiles', icon: Users, label: 'Parent Profiles' },
   { to: '/generator', icon: Sparkles, label: 'Content Generator' },
   { to: '/simulator', icon: MessageSquare, label: 'Scenario Simulator' },
+  { to: '/history', icon: History, label: 'History' },
   { to: '/calendar', icon: Calendar, label: 'Content Calendar' },
   { to: '/channels', icon: Megaphone, label: 'Channel Playbooks' },
   { to: '/documents', icon: FileText, label: 'Documents' },
