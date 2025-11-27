@@ -11,6 +11,7 @@ import Documents from './pages/Documents';
 import Settings from './pages/Settings';
 import History from './pages/History';
 import ABTesting from './pages/ABTesting';
+import Analytics from './pages/Analytics';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="simulator" element={<ScenarioSimulator />} />
           <Route path="ab-testing" element={<ABTesting />} />
           <Route path="history" element={<History />} />
+          <Route path="analytics" element={<Analytics />} />
           <Route path="calendar" element={<ContentCalendar />} />
           <Route path="channels" element={<ChannelPlaybooks />} />
           <Route path="documents" element={<Documents />} />
