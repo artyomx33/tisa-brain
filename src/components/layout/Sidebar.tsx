@@ -12,7 +12,8 @@ import {
   Settings,
   Home,
   History,
-  FlaskConical
+  FlaskConical,
+  BarChart3
 } from 'lucide-react';
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
   { to: '/simulator', icon: MessageSquare, label: 'Scenario Simulator' },
   { to: '/ab-testing', icon: FlaskConical, label: 'A/B Testing' },
   { to: '/history', icon: History, label: 'History' },
+  { to: '/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/calendar', icon: Calendar, label: 'Content Calendar' },
   { to: '/channels', icon: Megaphone, label: 'Channel Playbooks' },
   { to: '/documents', icon: FileText, label: 'Documents' },
