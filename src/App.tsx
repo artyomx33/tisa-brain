@@ -9,6 +9,7 @@ import ContentCalendar from './pages/ContentCalendar';
 import ChannelPlaybooks from './pages/ChannelPlaybooks';
 import Documents from './pages/Documents';
 import Settings from './pages/Settings';
+import History from './pages/History';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="profiles" element={<ParentProfiles />} />
           <Route path="generator" element={<ContentGenerator />} />
           <Route path="simulator" element={<ScenarioSimulator />} />
+          <Route path="history" element={<History />} />
           <Route path="calendar" element={<ContentCalendar />} />
           <Route path="channels" element={<ChannelPlaybooks />} />
           <Route path="documents" element={<Documents />} />
