@@ -11,7 +11,8 @@ import {
   FileText,
   Settings,
   Home,
-  History
+  History,
+  FlaskConical
 } from 'lucide-react';
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { to: '/profiles', icon: Users, label: 'Parent Profiles' },
   { to: '/generator', icon: Sparkles, label: 'Content Generator' },
   { to: '/simulator', icon: MessageSquare, label: 'Scenario Simulator' },
+  { to: '/ab-testing', icon: FlaskConical, label: 'A/B Testing' },
   { to: '/history', icon: History, label: 'History' },
   { to: '/calendar', icon: Calendar, label: 'Content Calendar' },
   { to: '/channels', icon: Megaphone, label: 'Channel Playbooks' },

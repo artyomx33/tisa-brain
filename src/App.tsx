@@ -10,6 +10,7 @@ import ChannelPlaybooks from './pages/ChannelPlaybooks';
 import Documents from './pages/Documents';
 import Settings from './pages/Settings';
 import History from './pages/History';
+import ABTesting from './pages/ABTesting';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="profiles" element={<ParentProfiles />} />
           <Route path="generator" element={<ContentGenerator />} />
           <Route path="simulator" element={<ScenarioSimulator />} />
+          <Route path="ab-testing" element={<ABTesting />} />
           <Route path="history" element={<History />} />
           <Route path="calendar" element={<ContentCalendar />} />
           <Route path="channels" element={<ChannelPlaybooks />} />
