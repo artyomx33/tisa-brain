@@ -12,6 +12,8 @@ import {
   Trophy
 } from 'lucide-react';
 import { useHistoryStore } from '../stores/historyStore';
+import { generateWithClaude } from '../lib/claude';
+import { psychologyDrivers } from '../data/knowledge';
 
 interface Variation {
   id: string;
@@ -34,34 +36,66 @@ const psychologyLabels = {
   transformation: { label: 'Transformation', color: 'text-emerald-400', bg: 'bg-emerald-500' },
 };
 
-// Mock AI generation - replace with actual Claude API call
+// Real AI generation using Claude API with psychology frameworks
 const generateVariations = async (message: string): Promise<Variation[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  return [
-    {
-      id: crypto.randomUUID(),
-      psychology: 'status',
-      content: `🏆 ${message}\n\nAt TISA, excellence isn't optional—it's expected. Join the families who demand more for their children's future.\n\n#TISAschool #ExcellenceInEducation #LeadershipStartsHere`,
-      stars: 0,
-      likes: 0,
-    },
-    {
-      id: crypto.randomUUID(),
-      psychology: 'belonging',
-      content: `💫 ${message}\n\nBecome part of something extraordinary. At TISA, you're not just enrolling—you're joining a community of visionary families who believe education should be different.\n\n#TISAFamily #TogetherWeRise #CommunityOfExcellence`,
-      stars: 0,
-      likes: 0,
-    },
-    {
-      id: crypto.randomUUID(),
-      psychology: 'transformation',
-      content: `🚀 ${message}\n\nWatch your child transform from curious to confident. At TISA, we don't just teach—we unlock potential you didn't know existed.\n\n#TransformativeLearning #FutureLeaders #TISAjourney`,
-      stars: 0,
-      likes: 0,
-    },
-  ];
+  const variations: Variation[] = [];
+
+  for (const [psychType, psychDriver] of Object.entries(psychologyDrivers)) {
+    const psychology = psychType as 'status' | 'belonging' | 'transformation';
+
+    const prompt = `Transform this core message into a compelling TISA social media post using the ${psychDriver.name} psychology driver.
+
+CORE MESSAGE: "${message}"
+
+PSYCHOLOGY: ${psychDriver.name}
+Description: ${psychDriver.description}
+
+Core trigger: "${psychDriver.coreTrigger}"
+
+Content angles to use:
+${psychDriver.contentAngles.map(angle => `• ${angle}`).join('\n')}
+
+Example phrases (integrate 1-2 naturally):
+${psychDriver.examplePhrases.map(phrase => `• "${phrase}"`).join('\n')}
+
+CREATE A POST THAT:
+1. Speaks in the TISA voice
+2. Uses the ${psychDriver.name} psychology angle
+3. Is 2-4 sentences
+4. Includes an emoji at the start
+5. Ends with 3-4 strategic hashtags
+6. Feels authentic and specific, not templated
+
+Make this BOLD, CREATIVE, and SPECIFIC to TISA. Every word should matter.`;
+
+    try {
+      // Use varying temperatures for natural variation
+      const temperatures = [0.85, 0.9, 0.8];
+      const temp = temperatures[Object.keys(psychologyDrivers).indexOf(psychType)];
+
+      const content = await generateWithClaude(prompt, [], undefined, { temperature: temp });
+
+      variations.push({
+        id: crypto.randomUUID(),
+        psychology,
+        content,
+        stars: 0,
+        likes: 0,
+      });
+    } catch (error) {
+      console.error(`Error generating ${psychology} variation:`, error);
+      // Fallback content if API fails
+      variations.push({
+        id: crypto.randomUUID(),
+        psychology,
+        content: `[${psychology}] ${message}`,
+        stars: 0,
+        likes: 0,
+      });
+    }
+  }
+
+  return variations;
 };
 
 export default function ABTesting() {

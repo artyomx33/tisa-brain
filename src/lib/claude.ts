@@ -1,6 +1,9 @@
 // Claude AI Service for TISA Brain
 // This handles all AI generation using the Claude API
 
+import type { Pillar, ParentProfile } from '../data/knowledge';
+import { psychologyDrivers, redButtonMessages } from '../data/knowledge';
+
 const CLAUDE_API_KEY = import.meta.env.VITE_CLAUDE_API_KEY;
 
 interface Message {
@@ -98,7 +101,8 @@ When generating content, always:
 export async function generateWithClaude(
   prompt: string,
   conversationHistory: Message[] = [],
-  customSystemPrompt?: string
+  customSystemPrompt?: string,
+  options?: { temperature?: number }
 ): Promise<string> {
   if (!CLAUDE_API_KEY) {
     throw new Error('Claude API key not configured');
@@ -121,6 +125,7 @@ export async function generateWithClaude(
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4096,
+        temperature: options?.temperature ?? 0.8,
         system: customSystemPrompt || TISA_SYSTEM_PROMPT,
         messages
       })
@@ -143,74 +148,225 @@ export async function generateWithClaude(
 
 export async function generateInstagramPost(
   topic: string,
-  pillar: string,
-  profile: string,
+  pillar: Pillar,
+  profile: ParentProfile,
   psychology: string
 ): Promise<string> {
-  const prompt = `Generate an Instagram post for TISA School.
+  const psychDriver = psychologyDrivers[psychology as keyof typeof psychologyDrivers];
 
-**Topic:** ${topic}
-**Pillar:** ${pillar}
-**Target Parent Profile:** ${profile}
-**Primary Psychological Driver:** ${psychology}
+  const prompt = `Generate an Instagram post for TISA School that is BOLD, UNIQUE, and SPECIFIC.
 
-Create:
-1. A hook (first line that stops the scroll)
-2. The main content (3-5 short paragraphs)
-3. A call-to-action
-4. 5 relevant hashtags
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOPIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Format it exactly as it would appear on Instagram. Make it psychologically compelling using the ${psychology} driver.`;
+${topic}
 
-  return generateWithClaude(prompt);
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MARKETING PILLAR: ${pillar.name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${pillar.description}
+
+KEY MESSAGES (weave these in naturally):
+${pillar.keyMessages.map((msg, i) => `${i + 1}. "${msg}"`).join('\n')}
+
+CONTENT INSPIRATION:
+${pillar.contentIdeas.map(idea => `• ${idea}`).join('\n')}
+
+PSYCHOLOGY FIT: Status (${pillar.psychologyFit.status}/3) | Belonging (${pillar.psychologyFit.belonging}/3) | Transformation (${pillar.psychologyFit.transformation}/3)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TARGET AUDIENCE: ${profile.name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${profile.description}
+
+THEIR DEEP FEARS (address subtly):
+${profile.fears.map(f => `• ${f}`).join('\n')}
+
+THEIR ASPIRATIONS (trigger these):
+${profile.aspirations.map(a => `• ${a}`).join('\n')}
+
+CORE IDENTITY STATEMENT:
+"${profile.coreSentence}"
+
+KEY MESSAGES FOR THIS AUDIENCE:
+${profile.keyMessages.map(msg => `• "${msg}"`).join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PSYCHOLOGY FRAMEWORK: ${psychDriver.name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${psychDriver.description}
+
+CORE TRIGGER: "${psychDriver.coreTrigger}"
+
+CONTENT ANGLES (use 1-2 of these):
+${psychDriver.contentAngles.map(angle => `• ${angle}`).join('\n')}
+
+EXAMPLE PHRASES (integrate naturally):
+${psychDriver.examplePhrases.map(phrase => `• "${phrase}"`).join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+YOUR MISSION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create a SCROLL-STOPPING Instagram post that:
+
+1. Opens with an UNEXPECTED hook that stops the scroll
+2. Embodies the "${pillar.shortName}" pillar
+3. Speaks directly to ${profile.shortName} parents
+4. Triggers the ${psychDriver.name} psychology ("${psychDriver.coreTrigger}")
+5. Addresses at least ONE of their fears OR aspirations
+6. Uses 1-2 key messages naturally (don't be obvious)
+7. Incorporates at least one example phrase from the psychology framework
+8. Uses vivid, specific details (not generic education jargon)
+9. Ends with a compelling call-to-action
+10. Includes 5 strategic hashtags
+
+CRITICAL: Be BOLD, CREATIVE, and SPECIFIC to TISA. Avoid clichés. Make it feel like it was written by someone who deeply understands this school and this audience.
+
+Format exactly as it would appear on Instagram. Keep the hook short. Make every word count.`;
+
+  return generateWithClaude(prompt, [], undefined, { temperature: 0.9 });
 }
 
 export async function generateTourScript(
-  parentProfile: string,
+  parentProfile: ParentProfile,
   specificConcerns: string
 ): Promise<string> {
-  const prompt = `Generate a tour script for TISA School.
+  const psychDriver = psychologyDrivers[parentProfile.primaryDrive];
 
-**Parent Profile:** ${parentProfile}
-**Their Specific Concerns/Questions:** ${specificConcerns}
+  const prompt = `Generate a compelling tour script for TISA School.
 
-Create a complete tour script including:
-1. **Welcome & Connection** (establish rapport, mirror their values)
-2. **Opening Statement** (position TISA immediately)
-3. **Key Talking Points** (3-4 points tailored to this profile)
-4. **Objection Handling** (anticipate and address their concerns)
-5. **The Close** (how to end the tour with next steps)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARENT PROFILE: ${parentProfile.name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Use the selective admissions framing. Make them feel they need to qualify for TISA, not the other way around.`;
+${parentProfile.description}
 
-  return generateWithClaude(prompt);
+PRIMARY PSYCHOLOGICAL DRIVE: ${psychDriver.name}
+Core Trigger: "${psychDriver.coreTrigger}"
+
+THEIR DEEP FEARS (address proactively - don't wait for them to ask):
+${parentProfile.fears.map(f => `• ${f}`).join('\n')}
+
+THEIR DEEP ASPIRATIONS (paint this picture for them):
+${parentProfile.aspirations.map(a => `• ${a}`).join('\n')}
+
+THEIR CORE IDENTITY (this is the emotional anchor):
+"${parentProfile.coreSentence}"
+
+KEY MESSAGES FOR THIS AUDIENCE:
+${parentProfile.keyMessages.map(msg => `• "${msg}"`).join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TODAY'S SPECIFIC CONCERNS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${specificConcerns}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+YOUR MISSION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create a tour script that:
+
+1. **WELCOME & CONNECTION** (60 seconds)
+   - Acknowledge their situation and the challenge they're navigating
+   - Mirror their values (especially ${parentProfile.primaryDrive} psychology)
+   - Make them feel understood
+
+2. **OPENING STATEMENT** (30 seconds)
+   - Position TISA as the bridge/solution for them
+   - Reference their core identity: "${parentProfile.coreSentence}"
+   - Create intrigue and forward momentum
+
+3. **KEY TALKING POINTS** (3-5 minutes)
+   - Address at least ONE of their fears proactively
+   - Trigger at least ONE of their aspirations
+   - Use the key messages naturally (don't be obvious)
+   - Provide specific examples and stories, not just statements
+
+4. **OBJECTION HANDLING** (reactive section)
+   - Anticipate their specific concern: "${specificConcerns}"
+   - Prepare 2-3 other likely objections based on their profile
+   - Provide reframes that address the underlying psychology
+   - Use selective admissions framing ONLY if appropriate for their drive
+
+5. **THE CLOSE** (60 seconds)
+   - Make them feel like they've found their tribe/solution
+   - Invoke their core identity one more time
+   - Clear next steps (application, visit, inquiry)
+   - End with confidence, not desperation
+
+TONE: Confident, warm, selective, and empowering (never defensive, never needy)
+
+CRITICAL: This script should sound natural, conversational, and personalized to ${parentProfile.shortName} parents. Not a robot script. Real human dialogue.`;
+
+  return generateWithClaude(prompt, [], undefined, { temperature: 0.85 });
 }
 
 export async function handleObjection(
   objection: string,
-  context: string
+  context: string,
+  parentProfile?: ParentProfile
 ): Promise<string> {
+  const redButtonMsgs = redButtonMessages.map(msg => `• **${msg.message}** - ${msg.explanation}`).join('\n');
+
+  const profileContext = parentProfile ? `
+PARENT PROFILE: ${parentProfile.name}
+Primary Drive: ${parentProfile.primaryDrive.toUpperCase()}
+Fears: ${parentProfile.fears.join(', ')}
+Aspirations: ${parentProfile.aspirations.join(', ')}` : '';
+
   const prompt = `A parent has raised this objection/concern during a TISA interaction:
 
 **Objection:** "${objection}"
-**Context:** ${context}
+**Context:** ${context}${profileContext}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RED BUTTON MESSAGES (use these as reframes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${redButtonMsgs}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+YOUR RESPONSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Provide:
-1. **The Psychology Behind This Objection** (what are they really asking?)
-2. **Reframe the Conversation** (how to shift their perspective)
-3. **The Response** (exactly what to say, word-for-word)
-4. **Follow-up Question** (to regain control of the conversation)
 
-Remember: Never be defensive. Turn objections into opportunities to demonstrate TISA's unique value.`;
+1. **The Psychology Behind This Objection**
+   - What is the parent REALLY asking?
+   - What underlying fear or desire is driving this?
 
-  return generateWithClaude(prompt);
+2. **Which Red Button Message Applies?**
+   - Select 1-2 of the red button messages that reframe this objection
+   - Explain how to use it in this context
+
+3. **The Response** (word-for-word, conversational)
+   - Start by validating their concern
+   - Reframe using the red button message(s)
+   - Provide specific TISA examples or evidence
+   - End with confidence
+
+4. **Follow-up Question** (to regain control)
+   - Ask something that moves the conversation forward
+   - Address their underlying concern
+   - Redirect to TISA's value proposition
+
+TONE: Warm, confident, never defensive, never apologetic. Turn this into an opportunity to demonstrate TISA's unique value.${parentProfile ? `\n\nREMEMBER: This parent's primary drive is ${parentProfile.primaryDrive}. Frame your response to appeal to that psychology.` : ''}`;
+
+  return generateWithClaude(prompt, [], undefined, { temperature: 0.8 });
 }
 
 export async function upgradeDocument(
   originalText: string,
   documentType: string
 ): Promise<string> {
-  const prompt = `Rewrite this text in the TISA voice and style:
+  const prompt = `Rewrite this text in the TISA voice and style with IMPACT and CREATIVITY.
 
 **Original Text:**
 ${originalText}
@@ -218,14 +374,18 @@ ${originalText}
 **Document Type:** ${documentType}
 
 Upgrade this to:
-- Match TISA's premium, confident tone
+- Match TISA's premium, confident tone (never arrogant, never needy)
 - Apply psychological framing (status/belonging/transformation)
-- Make it more compelling and professional
-- Keep the core information but elevate the language
+- Make it MORE compelling, MORE professional, MORE TISA
+- Keep the core information but ELEVATE the language
+- Remove education jargon - add specificity and emotion
+- Add unexpected turns of phrase that make it memorable
 
-Provide the upgraded version ready to use.`;
+CRITICAL: This should feel like it was written by someone who deeply understands TISA's mission and the families we serve.
 
-  return generateWithClaude(prompt);
+Provide the upgraded version ready to use immediately.`;
+
+  return generateWithClaude(prompt, [], undefined, { temperature: 0.85 });
 }
 
 export async function runScenario(
@@ -253,22 +413,30 @@ export async function generateEmail(
   recipient: string,
   purpose: string
 ): Promise<string> {
-  const prompt = `Write an email for TISA School.
+  const prompt = `Write a compelling email for TISA School.
 
 **Recipient:** ${recipient}
 **Purpose:** ${purpose}
 **Context:** ${context}
 
 Create a complete email with:
-- Subject line
-- Greeting
-- Body (appropriately formatted)
+- Subject line (short, intriguing, action-oriented)
+- Greeting (personalized if possible)
+- Body (concise, compelling, no filler)
 - Professional closing
 - Signature line
 
-Match TISA's tone: warm but professional, confident but not arrogant, premium but accessible.`;
+TISA TONE GUIDELINES:
+- Warm but professional
+- Confident but not arrogant
+- Premium but accessible
+- Never needy or apologetic
+- Specific details, not generic statements
+- Action-oriented, not passive
 
-  return generateWithClaude(prompt);
+CRITICAL: Make every sentence earn its place. This email should feel personal and thoughtful, not templated.`;
+
+  return generateWithClaude(prompt, [], undefined, { temperature: 0.8 });
 }
 
 export { TISA_SYSTEM_PROMPT };

@@ -67,26 +67,31 @@ export default function ContentGenerator() {
           const selectedPillar = pillars.find(p => p.id === pillar);
           const selectedProfile = parentProfiles.find(p => p.id === profile);
           inputText = topic;
-          result = await generateInstagramPost(
-            topic,
-            selectedPillar?.name || pillar,
-            selectedProfile?.name || profile,
-            psychology
-          );
+          if (selectedPillar && selectedProfile) {
+            result = await generateInstagramPost(
+              topic,
+              selectedPillar,
+              selectedProfile,
+              psychology
+            );
+          }
           break;
 
         case 'tour':
           const tourProfile = parentProfiles.find(p => p.id === profile);
           inputText = `Profile: ${tourProfile?.name}, Concerns: ${concerns}`;
-          result = await generateTourScript(
-            tourProfile?.name || profile,
-            concerns
-          );
+          if (tourProfile) {
+            result = await generateTourScript(
+              tourProfile,
+              concerns
+            );
+          }
           break;
 
         case 'objection':
+          const objectionProfile = parentProfiles.find(p => p.id === profile);
           inputText = objection;
-          result = await handleObjection(objection, context);
+          result = await handleObjection(objection, context, objectionProfile);
           break;
 
         case 'document':
