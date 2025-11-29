@@ -20,6 +20,7 @@ import {
   communicationPrinciples,
   categoryLabels,
 } from '../data/emailKnowledge';
+import { generateWithClaude } from '../lib/claude';
 import { useHistoryStore } from '../stores/historyStore';
 
 type TabType = 'compose' | 'templates' | 'guide';
@@ -30,119 +31,79 @@ const tabs: { id: TabType; label: string; icon: typeof Mail }[] = [
   { id: 'guide', label: 'Style Guide', icon: BookOpen },
 ];
 
-// Mock AI generation - replace with actual Claude API
+// Real Claude API generation for personalized email replies
 const generateEmailReply = async (emailThread: string, context?: string): Promise<{ subject: string; body: string }> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 2500));
-  
-  // For demo purposes, generate a contextual response
-  const isInquiry = emailThread.toLowerCase().includes('interested') || emailThread.toLowerCase().includes('information');
-  const isTour = emailThread.toLowerCase().includes('tour') || emailThread.toLowerCase().includes('visit');
-  const isComplaint = emailThread.toLowerCase().includes('unhappy') || emailThread.toLowerCase().includes('problem') || emailThread.toLowerCase().includes('issue');
-  const isInvoice = emailThread.toLowerCase().includes('invoice') || emailThread.toLowerCase().includes('payment') || emailThread.toLowerCase().includes('bill');
-  
-  if (isComplaint) {
+  const prompt = `You are a Teddy Kids email assistant. Generate a personalized, warm reply to the parent's email.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARENT'S EMAIL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${emailThread}
+
+${context ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONTEXT (use to personalize response)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${context}
+` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEDDYKIDS PRINCIPLES - ALWAYS FOLLOW THESE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. **Warmth** - "I see you" and your situation
+2. **Reassurance** - "I've got you" and "we're here for you"
+3. **Guidance** - "Here's what happens next" (clear next steps)
+4. **Use names** - Always use parent/child names when available in context
+5. **Human touch** - At least one soft, genuine human sentence
+6. **Specific, never generic** - Reference actual details from their email or context
+7. **Professional yet warm** - Not cold, not policy-dumping, not corporate
+8. **Proactive** - Anticipate what they need
+9. **Clear closing** - Always end with warm regards and signature
+10. **Personal voice** - Sounds like a real person, not a template
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+YOUR TASK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Generate a personalized email reply that:
+- Opens with warmth and understanding of their specific situation
+- Uses their name (if provided in context)
+- References specific details from their email (amounts, dates, names, concerns)
+- Addresses their actual question/concern with concrete information
+- Includes at least one soft, human sentence that shows empathy
+- Provides clear next steps if applicable
+- Closes warmly and professionally
+- Sounds natural and personal, not templated
+
+FORMAT YOUR RESPONSE EXACTLY AS:
+Subject: [Your subject line here]
+
+[Your email body here - use proper paragraph breaks]
+
+CRITICAL: Your response must feel personal, warm, and specific to THIS parent's situation. Never generic. Always human.`;
+
+  try {
+    const response = await generateWithClaude(prompt, [], undefined, { temperature: 0.75 });
+
+    // Parse response to extract subject and body
+    const subjectMatch = response.match(/Subject:\s*(.+?)(?:\n|$)/);
+    const subject = subjectMatch ? subjectMatch[1].trim() : 'Thank You for Your Message';
+
+    // Get body (everything after the subject line)
+    const bodyStart = response.indexOf('\n') + 1;
+    const body = response.substring(bodyStart).trim();
+
     return {
-      subject: 'Thank You for Sharing This With Us',
-      body: `Dear Parent,
-
-Thank you for sharing this with us — we truly appreciate your openness.
-
-I understand how this situation may have felt, and I want you to know that we take your concerns seriously. I'd like to look into this carefully so we can resolve it together.
-
-Could we schedule a short call or meeting at a time that works for you? That way, we can go through everything calmly and make sure you feel fully supported.
-
-We're here for you, and we'll handle this with care.
-
-Warm regards,
-Teddy Kids Team`
+      subject,
+      body
     };
+  } catch (error) {
+    console.error('Email generation failed:', error);
+    throw error;
   }
-  
-  if (isInvoice) {
-    return {
-      subject: 'Re: Your Invoice Question',
-      body: `Dear Parent,
-
-Thank you for reaching out — happy to look into this for you.
-
-I've reviewed your account and wanted to give you a clear overview of where things stand. If you'd like copies of specific invoices or a full payment history, just let me know and I'll send them right away.
-
-We're here to help with any billing questions you might have.
-
-Warm regards,
-Teddy Kids Team`
-    };
-  }
-  
-  if (isTour) {
-    return {
-      subject: 'Your Tour is Confirmed! 🎉',
-      body: `Dear Parent,
-
-Wonderful — we're so excited to welcome you for a tour!
-
-You'll get a chance to meet our teachers, see the group rooms, and feel the warm atmosphere our children enjoy every day. It's a lovely opportunity to see if Teddy Kids feels like the right home for your little one.
-
-If anything changes or you need help with directions, just send me a quick message.
-
-See you soon!
-
-Warm regards,
-Teddy Kids Team`
-    };
-  }
-  
-  if (isInquiry) {
-    return {
-      subject: 'A Warm Welcome to Teddy Kids 🧸',
-      body: `Dear Parent,
-
-Thank you for reaching out — and welcome! We're so happy you found us and would love to explore a place for your little one in our Teddy family.
-
-To check availability and prepare everything smoothly, could you share a few details?
-
-**About your child:**
-• Full name
-• Date of birth
-• Preferred start date
-• Days you need
-
-**About you:**
-• Parent names
-• Phone number
-• Email address
-
-Once I have these, I'll check our groups and guide you through the next steps.
-
-We also host tours during the week — let me know if you'd like to visit and see our spaces in person!
-
-Looking forward to welcoming you.
-
-Warm regards,
-Teddy Kids Team`
-    };
-  }
-  
-  // Default response
-  return {
-    subject: 'Thank You for Your Message',
-    body: `Dear Parent,
-
-Thank you for your message — we appreciate you reaching out.
-
-${context ? `Regarding ${context.toLowerCase()}, ` : ''}I've looked into this and wanted to get back to you right away.
-
-Here's what I can share:
-• [Key information or update]
-• [Next steps if applicable]
-• [Timeline if relevant]
-
-If you have any questions or need anything else, please don't hesitate to reach out. We're always here to help.
-
-Warm regards,
-Teddy Kids Team`
-  };
 };
 
 export default function EmailAssistant() {
@@ -268,14 +229,18 @@ Hi, we recently moved to the Netherlands and are looking for childcare for our s
               />
 
               <label className="block text-sm font-heading text-tisa-cream/70 mb-2">
-                Additional context (optional)
+                Additional context (optional - helps personalize the reply)
               </label>
-              <input
-                type="text"
+              <textarea
                 value={contextInput}
                 onChange={(e) => setContextInput(e.target.value)}
-                className="input w-full mb-4"
-                placeholder="e.g., 'They visited last week', 'Invoice is overdue', 'Child starts Monday'"
+                className="input w-full h-24 resize-none mb-4 font-mono text-sm"
+                placeholder="Add details to personalize the reply:
+Parent name: Nithya
+Child name: Krishnaved
+Invoice amount: €2,963.73
+Start date: 16 October
+Any other details..."
               />
 
               <div className="flex items-center justify-between">
