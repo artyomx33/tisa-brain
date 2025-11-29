@@ -12,6 +12,7 @@ import Settings from './pages/Settings';
 import History from './pages/History';
 import ABTesting from './pages/ABTesting';
 import Analytics from './pages/Analytics';
+import EmailAssistant from './pages/EmailAssistant';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="knowledge" element={<KnowledgeBase />} />
           <Route path="profiles" element={<ParentProfiles />} />
           <Route path="generator" element={<ContentGenerator />} />
+          <Route path="email" element={<EmailAssistant />} />
           <Route path="simulator" element={<ScenarioSimulator />} />
           <Route path="ab-testing" element={<ABTesting />} />
           <Route path="history" element={<History />} />

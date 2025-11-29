@@ -13,7 +13,8 @@ import {
   Home,
   History,
   FlaskConical,
-  BarChart3
+  BarChart3,
+  Mail
 } from 'lucide-react';
 
 const navItems = [
@@ -21,6 +22,7 @@ const navItems = [
   { to: '/knowledge', icon: BookOpen, label: 'Knowledge Base' },
   { to: '/profiles', icon: Users, label: 'Parent Profiles' },
   { to: '/generator', icon: Sparkles, label: 'Content Generator' },
+  { to: '/email', icon: Mail, label: 'Email Assistant' },
   { to: '/simulator', icon: MessageSquare, label: 'Scenario Simulator' },
   { to: '/ab-testing', icon: FlaskConical, label: 'A/B Testing' },
   { to: '/history', icon: History, label: 'History' },
